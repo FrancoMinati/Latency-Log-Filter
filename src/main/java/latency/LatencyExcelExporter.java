@@ -118,7 +118,7 @@ public class LatencyExcelExporter {
 
             if (bestRow > 0) {
                 CellStyle greenStyle = workbook.createCellStyle();
-                greenStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+                greenStyle.setFillForegroundColor(IndexedColors.GREEN.getIndex());
                 greenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
                 Row best = summarySheet.getRow(bestRow);
