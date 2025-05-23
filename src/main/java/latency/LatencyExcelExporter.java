@@ -64,10 +64,7 @@ public class LatencyExcelExporter {
 
                 List<LatencyWindowAverager.Result> results = averager.getResults();
                 LatencyWindowAverager.Stats stats = averager.getStats();
-                double windowAvg = results.stream()
-                        .mapToDouble(r -> r.averageLatency)
-                        .average()
-                        .orElse(0.0);
+                double windowAvg = getWindowWeightedAvg(results);
 
                 Row row = summarySheet.createRow(rowNum);
                 row.createCell(0).setCellValue(name);
@@ -97,6 +94,7 @@ public class LatencyExcelExporter {
                 header.createCell(0).setCellValue("Window Start");
                 header.createCell(1).setCellValue("Promedio (ms)");
                 header.createCell(2).setCellValue("Cantidad");
+                header.createCell(3).setCellValue("Ponderado (ms)");
 
                 int r = 1;
                 for (LatencyWindowAverager.Result result : results) {
@@ -104,9 +102,10 @@ public class LatencyExcelExporter {
                     rowW.createCell(0).setCellValue(result.windowStart.toString());
                     rowW.createCell(1).setCellValue(result.averageLatency);
                     rowW.createCell(2).setCellValue(result.count);
+                    rowW.createCell(3).setCellValue(result.averageLatency*result.count*result.count); // genera un ponderado donde cada mensaje pesa n, siendo n la cantidad de mensajes totales durante ese segundo
                 }
 
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 4; i++) {
                     windowSheet.autoSizeColumn(i);
                 }
 
@@ -135,5 +134,18 @@ public class LatencyExcelExporter {
         } catch (IOException e) {
             throw new RuntimeException("Error al generar el Excel", e);
         }
+    }
+
+    private static double getWindowWeightedAvg(List<LatencyWindowAverager.Result> results) {
+        double weightedSum = results.stream()
+                .mapToDouble(r -> r.averageLatency * r.count * r.count)
+                .sum();
+
+        double totalWeight = results.stream()
+                .mapToDouble(r -> r.count * r.count)
+                .sum();
+
+        double windowAvg = totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
+        return windowAvg;
     }
 }
