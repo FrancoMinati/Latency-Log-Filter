@@ -34,7 +34,7 @@ public class LatencyExcelExporter {
             Sheet summarySheet = workbook.createSheet("Latency Summary");
             String[] headers = {
                     "Archivo", "Promedio (ms)", "Prom. ventanas (ms)", "Desvío estándar",
-                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Cantidad > P95","Tamaño muestra","Prom. Menor P95"
+                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Mediana" ,"Cantidad > P95","Tamaño muestra","Prom. Menor P95"
             };
 
             Row headerRow = summarySheet.createRow(0);
@@ -80,9 +80,10 @@ public class LatencyExcelExporter {
                 row.createCell(7).setCellValue(stats.p95);
                 row.createCell(8).setCellValue(stats.p99);
                 row.createCell(9).setCellValue(stats.p999);
-                row.createCell(10).setCellValue(stats.aboveP95Count);
-                row.createCell(11).setCellValue(stats.totalDataSize);
-                row.createCell(12).setCellValue(stats.averageBelowP95);
+                row.createCell(10).setCellValue(stats.p50);
+                row.createCell(11).setCellValue(stats.aboveP95Count);
+                row.createCell(12).setCellValue(stats.totalDataSize);
+                row.createCell(13).setCellValue(stats.averageBelowP95);
 
                 if (stats.average < bestAvg) {
                     bestAvg = stats.average;
