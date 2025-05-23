@@ -5,7 +5,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class LatencyExcelExporter {
 
@@ -15,21 +14,18 @@ public class LatencyExcelExporter {
             throw new IllegalArgumentException("Ruta inválida: " + folderPath);
         }
 
-        List<File> logFiles = new ArrayList<>();
         Map<String, File> nameToFile = new LinkedHashMap<>();
-        Map<String, LatencyWindowAverager> averagerMap = new HashMap<>();
         File[] subdirs = folder.listFiles(File::isDirectory);
         if (subdirs != null) {
             for (File subdir : subdirs) {
                 File delayLog = new File(subdir, "delay.log");
                 if (delayLog.exists()) {
-                    logFiles.add(delayLog);
                     nameToFile.put(subdir.getName() + "/delay.log", delayLog);
                 }
             }
         }
 
-        if (logFiles.isEmpty()) {
+        if (nameToFile.isEmpty()) {
             System.out.println("No se encontraron archivos delay.log en subdirectorios de la carpeta.");
             return;
         }
@@ -38,7 +34,7 @@ public class LatencyExcelExporter {
             Sheet summarySheet = workbook.createSheet("Latency Summary");
             String[] headers = {
                     "Archivo", "Promedio (ms)", "Prom. ventanas (ms)", "Desvío estándar",
-                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Cantidad > P95"
+                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Cantidad > P95","Tamaño muestra","Prom. Menor P95"
             };
 
             Row headerRow = summarySheet.createRow(0);
@@ -50,16 +46,12 @@ public class LatencyExcelExporter {
             double bestAvg = Double.MAX_VALUE;
             int bestRow = -1;
 
-            Map<String, List<LatencyWindowAverager.Result>> allWindowResults = new LinkedHashMap<>();
-            Set<Long> commonWindowStartEpochs = null;
-
-            // Leer y procesar archivos
             for (Map.Entry<String, File> entry : nameToFile.entrySet()) {
                 String name = entry.getKey();
                 File file = entry.getValue();
 
                 LatencyWindowAverager averager = new LatencyWindowAverager(windowSeconds);
-                averagerMap.put(name, averager);
+
                 try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -71,66 +63,12 @@ public class LatencyExcelExporter {
                 }
 
                 List<LatencyWindowAverager.Result> results = averager.getResults();
-                allWindowResults.put(name, results);
-
-                Set<Long> windowEpochs = results.stream()
-                        .map(r -> r.windowStart.toEpochMilli())
-                        .collect(Collectors.toSet());
-
-                if (commonWindowStartEpochs == null) {
-                    commonWindowStartEpochs = new TreeSet<>(windowEpochs);
-                } else {
-                    commonWindowStartEpochs.retainAll(windowEpochs);
-                }
-            }
-
-            if (commonWindowStartEpochs == null || commonWindowStartEpochs.isEmpty()) {
-                System.out.println("❌ No hay ventanas comunes entre los archivos.");
-                return;
-            }
-
-            long minCommonEpoch = Collections.min(commonWindowStartEpochs);
-            long maxCommonEpoch = Collections.max(commonWindowStartEpochs);
-
-            // Generar todas las ventanas entre min y max, en pasos de windowSeconds
-            List<Long> allWindowEpochs = new ArrayList<>();
-            for (long w = minCommonEpoch; w <= maxCommonEpoch; w += windowSeconds * 1000L) {
-                allWindowEpochs.add(w);
-            }
-
-            for (Map.Entry<String, File> entry : nameToFile.entrySet()) {
-                String name = entry.getKey();
-
-                List<LatencyWindowAverager.Result> results = allWindowResults.get(name);
-                Map<Long, LatencyWindowAverager.Result> resultMap = new HashMap<>();
-                for (LatencyWindowAverager.Result r : results) {
-                    resultMap.put(r.windowStart.toEpochMilli(), r);
-                }
-
-                // Completar ventanas faltantes con resultados vacíos
-                List<LatencyWindowAverager.Result> filledResults = new ArrayList<>();
-                for (Long windowStart : allWindowEpochs) {
-                    if (resultMap.containsKey(windowStart)) {
-                        filledResults.add(resultMap.get(windowStart));
-                    } else {
-                        filledResults.add(new LatencyWindowAverager.Result(
-                                java.time.Instant.ofEpochMilli(windowStart),
-                                0.0,
-                                0));
-                    }
-                }
-
-                // Calcular promedio ventana solo sobre ventanas con datos (count > 0)
-                double windowAvg = filledResults.stream()
-                        .filter(r -> r.count > 0)
+                LatencyWindowAverager.Stats stats = averager.getStats();
+                double windowAvg = results.stream()
                         .mapToDouble(r -> r.averageLatency)
                         .average()
                         .orElse(0.0);
 
-                // Usar el averager para estadísticas totales
-                LatencyWindowAverager.Stats stats = averagerMap.get(name).getStats();
-
-                // Escribir fila resumen
                 Row row = summarySheet.createRow(rowNum);
                 row.createCell(0).setCellValue(name);
                 row.createCell(1).setCellValue(stats.average);
@@ -143,15 +81,16 @@ public class LatencyExcelExporter {
                 row.createCell(8).setCellValue(stats.p99);
                 row.createCell(9).setCellValue(stats.p999);
                 row.createCell(10).setCellValue(stats.aboveP95Count);
+                row.createCell(11).setCellValue(stats.totalDataSize);
+                row.createCell(12).setCellValue(stats.averageBelowP95);
 
-                if (windowAvg < bestAvg) {
-                    bestAvg = windowAvg;
+                if (stats.average < bestAvg) {
+                    bestAvg = stats.average;
                     bestRow = rowNum;
                 }
 
                 rowNum++;
 
-                // Hoja individual con ventanas completas
                 Sheet windowSheet = workbook.createSheet(name.replace("/", "_") + "_ventanas");
                 Row header = windowSheet.createRow(0);
                 header.createCell(0).setCellValue("Window Start");
@@ -159,7 +98,7 @@ public class LatencyExcelExporter {
                 header.createCell(2).setCellValue("Cantidad");
 
                 int r = 1;
-                for (LatencyWindowAverager.Result result : filledResults) {
+                for (LatencyWindowAverager.Result result : results) {
                     Row rowW = windowSheet.createRow(r++);
                     rowW.createCell(0).setCellValue(result.windowStart.toString());
                     rowW.createCell(1).setCellValue(result.averageLatency);
@@ -177,7 +116,6 @@ public class LatencyExcelExporter {
                 summarySheet.autoSizeColumn(i);
             }
 
-            // Marcar la mejor fila en verde
             if (bestRow > 0) {
                 CellStyle greenStyle = workbook.createCellStyle();
                 greenStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());

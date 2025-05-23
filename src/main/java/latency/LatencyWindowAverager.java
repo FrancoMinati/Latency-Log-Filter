@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LatencyWindowAverager {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss.SSS");
@@ -69,7 +70,7 @@ public class LatencyWindowAverager {
         try {
             String recvTimeStr = parts[2];
             int latency = Integer.parseInt(parts[4]);
-
+            //if (latency < 0) return;
             long epochMillis = LocalDateTime.parse(recvTimeStr, formatter)
                     .atZone(zoneId)
                     .toInstant()
@@ -112,26 +113,31 @@ public class LatencyWindowAverager {
 
     public static class Stats {
         public final double average;
+        public final double averageBelowP95;
         public final double stdDev;
         public final int peakCount;
         public final int maxLatency;
         public final int minLatency;
+        public final int p50;
         public final int p95;
         public final int p99;
         public final int p999;
         public final int aboveP95Count;
+        public final int totalDataSize;
 
-        public Stats(double average, double stdDev, int peakCount, int maxLatency,
-                     int minLatency, int p95, int p99, int p999, int aboveP95Count) {
+        public Stats(double average, double averageBelowP95, double stdDev, int peakCount, int maxLatency, int minLatency, int p50, int p95, int p99, int p999, int aboveP95Count, int totalDataSize) {
             this.average = average;
+            this.averageBelowP95 = averageBelowP95;
             this.stdDev = stdDev;
             this.peakCount = peakCount;
             this.maxLatency = maxLatency;
             this.minLatency = minLatency;
+            this.p50 = p50;
             this.p95 = p95;
             this.p99 = p99;
             this.p999 = p999;
             this.aboveP95Count = aboveP95Count;
+            this.totalDataSize = totalDataSize;
         }
     }
 
@@ -146,7 +152,7 @@ public class LatencyWindowAverager {
     }
     public Stats getStats() {
         List<Integer> values = getAllLatencies();
-        if (values.isEmpty()) return new Stats(0, 0, 0, 0, 0, 0, 0, 0,0);
+        if (values.isEmpty()) return new Stats(0, 0,0, 0,0, 0,0, 0, 0, 0, 0,0);
 
         Collections.sort(values);
         int n = values.size();
@@ -157,12 +163,31 @@ public class LatencyWindowAverager {
         int max = values.get(n - 1);
         int min = values.get(0);
 
+        int p50= values.get(Math.min((int) Math.ceil(0.5 * n) - 1, n - 1));
         int p95 = values.get(Math.min((int) Math.ceil(0.95 * n) - 1, n - 1));
         int p99 = values.get(Math.min((int) Math.ceil(0.99 * n) - 1, n - 1));
         int p999 = values.get(Math.min((int) Math.ceil(0.999 * n) - 1, n - 1));
         int aboveP95 = (int) values.stream().filter(i -> i > p95).count();
+        double averageBelowP95= getAverageBelowP95();
+        return new Stats(avg, averageBelowP95,std, peakCount, max, min, p50, p95, p99, p999, aboveP95,n);
+    }
+    public double getAverageBelowP95() {
+        List<Integer> values = getAllLatencies();
+        if (values.isEmpty()) return 0.0;
 
-        return new Stats(avg, std, peakCount, max, min, p95, p99, p999, aboveP95);
+        Collections.sort(values);
+        int n = values.size();
+        int p95Index = Math.min((int) Math.ceil(0.95 * n) - 1, n - 1);
+        int p95Value = values.get(p95Index);
+
+        List<Integer> filtered = values.stream()
+                .filter(v -> v <= p95Value)
+                .collect(Collectors.toList());
+
+        return filtered.stream()
+                .mapToInt(i -> i)
+                .average()
+                .orElse(0.0);
     }
 
 
