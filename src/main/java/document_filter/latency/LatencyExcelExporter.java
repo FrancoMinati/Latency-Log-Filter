@@ -8,6 +8,9 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,48 +155,23 @@ public class LatencyExcelExporter {
         }
     }
 
-    public static void copySummaryToExistingExcel(String sourceExcelFile, String targetExcelFile) {
+    public static void copySummaryToExistingExcel(String sourceExcelFile, String targetExcelFile, String outputDirectory) {
         try (FileInputStream sourceFis = new FileInputStream(sourceExcelFile);
              FileInputStream targetFis = new FileInputStream(targetExcelFile);
              Workbook sourceWorkbook = WorkbookFactory.create(sourceFis);
              Workbook targetWorkbook = new XSSFWorkbook(targetFis)) {
 
             Sheet summarySheet = sourceWorkbook.getSheet("Latency Summary");
-            if (summarySheet == null) {
-                throw new IllegalArgumentException("La hoja 'Latency Summary' no existe en el archivo fuente.");
-            }
-
             Sheet reportDataSheet = targetWorkbook.getSheet("Report Data");
-            if (reportDataSheet == null) {
-                throw new IllegalArgumentException("La hoja 'Report Data' no existe en el archivo destino.");
-            }
 
-            // Limpiar hoja destino
-            int lastRow = reportDataSheet.getLastRowNum();
-            for (int i = lastRow; i >= 0; i--) {
-                Row row = reportDataSheet.getRow(i);
-                if (row != null) reportDataSheet.removeRow(row);
-            }
-
-            // Copiar fila por fila
-            for (int i = 0; i <= summarySheet.getLastRowNum(); i++) {
-                Row sourceRow = summarySheet.getRow(i);
-                Row targetRow = reportDataSheet.createRow(i);
-
-                if (sourceRow == null) continue;
-
-                for (int j = 0; j < sourceRow.getLastCellNum(); j++) {
-                    Cell sourceCell = sourceRow.getCell(j);
-                    if (sourceCell == null) continue;
-
-                    Cell targetCell = targetRow.createCell(j);
-                    copyCellValue(sourceCell, targetCell);
-
-                }
-            }
+            validateSheetsExist(summarySheet, reportDataSheet);
+            clearInputTab(reportDataSheet); // Limpiar hoja destino
+            copySummaryData(summarySheet, reportDataSheet); // Copiar fila por fila
 
             // Guardar cambios en el archivo destino
-            try (FileOutputStream fos = new FileOutputStream(targetExcelFile)) {
+            String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String outputFilePath = Paths.get(outputDirectory, "report-" + dateStr + ".xlsx").toString();
+            try (FileOutputStream fos = new FileOutputStream(outputFilePath)) {
                 for (int i = 0; i < targetWorkbook.getNumberOfSheets(); i++) {
                     Sheet sheet = targetWorkbook.getSheetAt(i);
                     if (sheet != null) {
@@ -202,11 +180,47 @@ public class LatencyExcelExporter {
                 }
                 targetWorkbook.setForceFormulaRecalculation(true);
                 targetWorkbook.write(fos);
-                System.out.println("✅ Copiado 'Latency Summary' a 'report data' en: " + targetExcelFile);
+                System.out.println("✅ Archivo generado en: " + outputFilePath);
             }
 
         } catch (IOException e) {
             throw new RuntimeException("Error al copiar datos al Excel destino", e);
+        }
+    }
+
+    private static void validateSheetsExist(Sheet summarySheet, Sheet reportDataSheet) {
+        if (summarySheet == null) {
+            throw new IllegalArgumentException("La hoja 'Latency Summary' no existe en el archivo fuente.");
+        }
+
+        if (reportDataSheet == null) {
+            throw new IllegalArgumentException("La hoja 'Report Data' no existe en el archivo destino.");
+        }
+    }
+
+    private static void clearInputTab(Sheet reportDataSheet) {
+        int lastRow = reportDataSheet.getLastRowNum();
+        for (int i = lastRow; i >= 0; i--) {
+            Row row = reportDataSheet.getRow(i);
+            if (row != null) reportDataSheet.removeRow(row);
+        }
+    }
+
+    private static void copySummaryData(Sheet summarySheet, Sheet reportDataSheet) {
+        for (int i = 0; i <= summarySheet.getLastRowNum(); i++) {
+            Row sourceRow = summarySheet.getRow(i);
+            Row targetRow = reportDataSheet.createRow(i);
+
+            if (sourceRow == null) continue;
+
+            for (int j = 0; j < sourceRow.getLastCellNum(); j++) {
+                Cell sourceCell = sourceRow.getCell(j);
+                if (sourceCell == null) continue;
+
+                Cell targetCell = targetRow.createCell(j);
+                copyCellValue(sourceCell, targetCell);
+
+            }
         }
     }
 

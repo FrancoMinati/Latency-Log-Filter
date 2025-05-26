@@ -23,19 +23,21 @@ public class Metrics {
     private String reportFilePath;
     @Value("${summary.file.path}")
     private String summaryFilePath;
+    @Value("${output.directory}")
+    private String outputDirectory;
 
     //@PostConstruct
     public void exportMetrics() {
         System.out.println("Procesando archivos de latencia...");
 
-        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
-        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath);
+//        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
+//        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath);
     }
 
     public InputStreamResource getDailyMetrics() {
 
         LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
-        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath);
+        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
         try {
 
             // Leer el archivo generado como recurso
