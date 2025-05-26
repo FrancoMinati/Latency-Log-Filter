@@ -60,14 +60,13 @@ public class LatencyWindowAverager {
     }
     public Stats getStats() {
         List<Integer> values = getAllLatencies();
-        if (values.isEmpty()) return new Stats(0, 0,0, 0,0, 0,0, 0, 0, 0, 0,0);
+        if (values.isEmpty()) return new Stats(0, 0,0, 0, 0,0, 0, 0, 0, 0,0);
 
         Collections.sort(values);
         int n = values.size();
 
         double avg = values.stream().mapToInt(i -> i).average().orElse(0);
         double std = Math.sqrt(values.stream().mapToDouble(i -> Math.pow(i - avg, 2)).average().orElse(0));
-        int peakCount = (int) values.stream().filter(i -> i > avg + std).count();
         int max = values.get(n - 1);
         int min = values.getFirst();
 
@@ -83,7 +82,7 @@ public class LatencyWindowAverager {
                 .mapToInt(i -> i)
                 .average()
                 .orElse(0.0);
-        return new Stats(avg, averageBelowP95,std, peakCount, max, min, p50, p95, p99, p999, aboveP95,n);
+        return new Stats(avg, averageBelowP95,std, max, min, p50, p95, p99, p999, aboveP95,n);
     }
     public static double getWindowWeightedAvg(List<WindowResult> results) {
         double weightedSum = results.stream()

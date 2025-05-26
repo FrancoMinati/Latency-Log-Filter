@@ -3,7 +3,6 @@ package document_filter.latency;
 
 import document_filter.domain.Stats;
 import document_filter.domain.WindowResult;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -36,7 +35,7 @@ public class LatencyExcelExporter {
             return;
         }
 
-        try (Workbook workbook = new HSSFWorkbook()) {
+        try (Workbook workbook = new XSSFWorkbook()) {
             Sheet summarySheet = workbook.createSheet("Latency Summary");
             String[] headers = {
                     "Archivo", "Promedio (ms)", "Prom. ventanas (ms)", "Desvío estándar",
@@ -79,7 +78,7 @@ public class LatencyExcelExporter {
                 row.createCell(3).setCellValue(stats.stdDev);
                 row.createCell(4).setCellValue(stats.maxLatency);
                 row.createCell(5).setCellValue(stats.minLatency);
-                row.createCell(6).setCellValue(stats.peakCount);
+                row.createCell(6).setCellValue(0);
                 row.createCell(7).setCellValue(stats.p95);
                 row.createCell(8).setCellValue(stats.p99);
                 row.createCell(9).setCellValue(stats.p999);
@@ -155,7 +154,7 @@ public class LatencyExcelExporter {
 
             Sheet reportDataSheet = targetWorkbook.getSheet("Report Data");
             if (reportDataSheet == null) {
-                throw new IllegalArgumentException("La hoja 'report data' no existe en el archivo destino.");
+                throw new IllegalArgumentException("La hoja 'Report Data' no existe en el archivo destino.");
             }
 
             // Limpiar hoja destino

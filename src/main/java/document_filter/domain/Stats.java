@@ -4,7 +4,6 @@ public class Stats {
     public final double average;
     public final double averageBelowP95;
     public final double stdDev;
-    public final int peakCount;
     public final int maxLatency;
     public final int minLatency;
     public final int p50;
@@ -14,11 +13,10 @@ public class Stats {
     public final int aboveP95Count;
     public final int totalDataSize;
 
-    public Stats(double average, double averageBelowP95, double stdDev, int peakCount, int maxLatency, int minLatency, int p50, int p95, int p99, int p999, int aboveP95Count, int totalDataSize) {
+    public Stats(double average, double averageBelowP95, double stdDev, int maxLatency, int minLatency, int p50, int p95, int p99, int p999, int aboveP95Count, int totalDataSize) {
         this.average = average;
         this.averageBelowP95 = averageBelowP95;
         this.stdDev = stdDev;
-        this.peakCount = peakCount;
         this.maxLatency = maxLatency;
         this.minLatency = minLatency;
         this.p50 = p50;
