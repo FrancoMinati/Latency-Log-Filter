@@ -1,10 +1,14 @@
 package latency;
 
+import domain.Stats;
+import domain.WindowResult;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LatencyExcelExporter {
 
@@ -62,8 +66,8 @@ public class LatencyExcelExporter {
                     continue;
                 }
 
-                List<LatencyWindowAverager.Result> results = averager.getResults();
-                LatencyWindowAverager.Stats stats = averager.getStats();
+                List<WindowResult> results = averager.getResults();
+                Stats stats = averager.getStats();
                 double windowAvg = getWindowWeightedAvg(results);
 
                 Row row = summarySheet.createRow(rowNum);
@@ -97,7 +101,7 @@ public class LatencyExcelExporter {
                 header.createCell(3).setCellValue("Ponderado (ms)");
 
                 int r = 1;
-                for (LatencyWindowAverager.Result result : results) {
+                for (WindowResult result : results) {
                     Row rowW = windowSheet.createRow(r++);
                     rowW.createCell(0).setCellValue(result.windowStart.toString());
                     rowW.createCell(1).setCellValue(result.averageLatency);
@@ -136,7 +140,7 @@ public class LatencyExcelExporter {
         }
     }
 
-    private static double getWindowWeightedAvg(List<LatencyWindowAverager.Result> results) {
+    private static double getWindowWeightedAvg(List<WindowResult> results) {
         double weightedSum = results.stream()
                 .mapToDouble(r -> r.averageLatency * r.count * r.count)
                 .sum();
@@ -145,7 +149,6 @@ public class LatencyExcelExporter {
                 .mapToDouble(r -> r.count * r.count)
                 .sum();
 
-        double windowAvg = totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
-        return windowAvg;
+        return totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
     }
 }

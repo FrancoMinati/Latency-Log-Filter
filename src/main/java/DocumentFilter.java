@@ -1,6 +1,4 @@
-import latency.LatencyComparator;
 import latency.LatencyExcelExporter;
-import latency.LatencyWindowAverager;
 
 public class DocumentFilter {
 
