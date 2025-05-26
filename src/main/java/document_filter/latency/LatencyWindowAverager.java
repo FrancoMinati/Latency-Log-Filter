@@ -1,12 +1,9 @@
-package latency;
+package document_filter.latency;
 
-import domain.Stats;
-import domain.Window;
-import domain.WindowResult;
+import document_filter.domain.Stats;
+import document_filter.domain.Window;
+import document_filter.domain.WindowResult;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -23,6 +20,8 @@ public class LatencyWindowAverager {
         this.zoneId = ZoneId.of("America/Argentina/Buenos_Aires"); // o configurable
     }
 
+
+
     public void addLine(String line) {
         String[] parts = line.split(";");
         if (parts.length != 5) return;
@@ -30,7 +29,7 @@ public class LatencyWindowAverager {
         try {
             String recvTimeStr = parts[2];
             int latency = Integer.parseInt(parts[4]);
-            //if (latency < 0) return;
+            //if (document_filter.latency < 0) return;
             long epochMillis = LocalDateTime.parse(recvTimeStr, formatter)
                     .atZone(zoneId)
                     .toInstant()
@@ -86,7 +85,17 @@ public class LatencyWindowAverager {
                 .orElse(0.0);
         return new Stats(avg, averageBelowP95,std, peakCount, max, min, p50, p95, p99, p999, aboveP95,n);
     }
+    public static double getWindowWeightedAvg(List<WindowResult> results) {
+        double weightedSum = results.stream()
+                .mapToDouble(r -> r.averageLatency * r.count * r.count)
+                .sum();
 
+        double totalWeight = results.stream()
+                .mapToDouble(r -> r.count * r.count)
+                .sum();
+
+        return totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
+    }
 
 
 }

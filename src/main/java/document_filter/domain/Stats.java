@@ -1,4 +1,4 @@
-package domain;
+package document_filter.domain;
 
 public class Stats {
     public final double average;

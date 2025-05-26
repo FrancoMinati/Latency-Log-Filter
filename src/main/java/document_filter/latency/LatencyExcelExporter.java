@@ -1,7 +1,9 @@
-package latency;
+package document_filter.latency;
 
-import domain.Stats;
-import domain.WindowResult;
+
+import document_filter.domain.Stats;
+import document_filter.domain.WindowResult;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -34,7 +36,7 @@ public class LatencyExcelExporter {
             return;
         }
 
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (Workbook workbook = new HSSFWorkbook()) {
             Sheet summarySheet = workbook.createSheet("Latency Summary");
             String[] headers = {
                     "Archivo", "Promedio (ms)", "Prom. ventanas (ms)", "Desvío estándar",
@@ -54,7 +56,7 @@ public class LatencyExcelExporter {
                 String name = entry.getKey();
                 File file = entry.getValue();
 
-                LatencyWindowAverager averager = new LatencyWindowAverager(windowSeconds);
+                LatencyWindowAverager averager = new document_filter.latency.LatencyWindowAverager(windowSeconds);
 
                 try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                     String line;
@@ -68,7 +70,7 @@ public class LatencyExcelExporter {
 
                 List<WindowResult> results = averager.getResults();
                 Stats stats = averager.getStats();
-                double windowAvg = getWindowWeightedAvg(results);
+                double windowAvg = document_filter.latency.LatencyWindowAverager.getWindowWeightedAvg(results);
 
                 Row row = summarySheet.createRow(rowNum);
                 row.createCell(0).setCellValue(name);
@@ -140,15 +142,65 @@ public class LatencyExcelExporter {
         }
     }
 
-    private static double getWindowWeightedAvg(List<WindowResult> results) {
-        double weightedSum = results.stream()
-                .mapToDouble(r -> r.averageLatency * r.count * r.count)
-                .sum();
+    public static void copySummaryToExistingExcel(String sourceExcelFile, String targetExcelFile) {
+        try (FileInputStream sourceFis = new FileInputStream(sourceExcelFile);
+             FileInputStream targetFis = new FileInputStream(targetExcelFile);
+             Workbook sourceWorkbook = WorkbookFactory.create(sourceFis);
+             Workbook targetWorkbook = new XSSFWorkbook(targetFis)) {
 
-        double totalWeight = results.stream()
-                .mapToDouble(r -> r.count * r.count)
-                .sum();
+            Sheet summarySheet = sourceWorkbook.getSheet("Latency Summary");
+            if (summarySheet == null) {
+                throw new IllegalArgumentException("La hoja 'Latency Summary' no existe en el archivo fuente.");
+            }
 
-        return totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
+            Sheet reportDataSheet = targetWorkbook.getSheet("Report Data");
+            if (reportDataSheet == null) {
+                throw new IllegalArgumentException("La hoja 'report data' no existe en el archivo destino.");
+            }
+
+            // Limpiar hoja destino
+            int lastRow = reportDataSheet.getLastRowNum();
+            for (int i = lastRow; i >= 0; i--) {
+                Row row = reportDataSheet.getRow(i);
+                if (row != null) reportDataSheet.removeRow(row);
+            }
+
+            // Copiar fila por fila
+            for (int i = 0; i <= summarySheet.getLastRowNum(); i++) {
+                Row sourceRow = summarySheet.getRow(i);
+                Row targetRow = reportDataSheet.createRow(i);
+
+                if (sourceRow == null) continue;
+
+                for (int j = 0; j < sourceRow.getLastCellNum(); j++) {
+                    Cell sourceCell = sourceRow.getCell(j);
+                    if (sourceCell == null) continue;
+
+                    Cell targetCell = targetRow.createCell(j);
+                    copyCellValue(sourceCell, targetCell);
+                }
+            }
+
+            // Guardar cambios en el archivo destino
+            try (FileOutputStream fos = new FileOutputStream(targetExcelFile)) {
+                targetWorkbook.write(fos);
+                System.out.println("✅ Copiado 'Latency Summary' a 'report data' en: " + targetExcelFile);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error al copiar datos al Excel destino", e);
+        }
     }
+
+    private static void copyCellValue(Cell source, Cell target) {
+        switch (source.getCellType()) {
+            case STRING -> target.setCellValue(source.getStringCellValue());
+            case NUMERIC -> target.setCellValue(source.getNumericCellValue());
+            case BOOLEAN -> target.setCellValue(source.getBooleanCellValue());
+            case FORMULA -> target.setCellFormula(source.getCellFormula());
+            case BLANK -> target.setBlank();
+            default -> target.setCellValue(source.toString());
+        }
+    }
+
 }

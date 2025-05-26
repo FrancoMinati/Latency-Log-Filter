@@ -1,4 +1,4 @@
-package domain;
+package document_filter.domain;
 
 import java.time.Instant;
 

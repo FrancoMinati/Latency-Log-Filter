@@ -1,5 +1,5 @@
 <archetype>
-  <id>DocumentFilter</id>
+  <id>DocumentFilterApplication</id>
   <sources>
     <source>src/main/java/App.java</source>
   </sources>
