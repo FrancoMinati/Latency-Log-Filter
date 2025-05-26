@@ -39,7 +39,8 @@ public class LatencyExcelExporter {
             Sheet summarySheet = workbook.createSheet("Latency Summary");
             String[] headers = {
                     "Archivo", "Promedio (ms)", "Prom. ventanas (ms)", "Desvío estándar",
-                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Mediana" ,"Cantidad > P95","Tamaño muestra","Prom. Menor P95"
+                    "Máxima", "Mínima", "Picos (>μ+σ)", "P95", "P99", "P99.9", "Mediana" ,"Cantidad > P95",
+                    "Tamaño muestra","Prom. < P95","Prom. > P95 (ms)","Prom. msg/s"
             };
 
             Row headerRow = summarySheet.createRow(0);
@@ -86,6 +87,8 @@ public class LatencyExcelExporter {
                 row.createCell(11).setCellValue(stats.aboveP95Count);
                 row.createCell(12).setCellValue(stats.totalDataSize);
                 row.createCell(13).setCellValue(stats.averageBelowP95);
+                row.createCell(14).setCellValue(stats.averageUpperP95);
+
 
                 if (stats.average < bestAvg) {
                     bestAvg = stats.average;
@@ -102,14 +105,21 @@ public class LatencyExcelExporter {
                 header.createCell(3).setCellValue("Ponderado (ms)");
 
                 int r = 1;
+                double windowCountAvg=0;
                 for (WindowResult result : results) {
                     Row rowW = windowSheet.createRow(r++);
                     rowW.createCell(0).setCellValue(result.windowStart.toString());
                     rowW.createCell(1).setCellValue(result.averageLatency);
                     rowW.createCell(2).setCellValue(result.count);
+                    windowCountAvg+= result.count;
                     rowW.createCell(3).setCellValue(result.averageLatency*result.count*result.count); // genera un ponderado donde cada mensaje pesa n, siendo n la cantidad de mensajes totales durante ese segundo
                 }
 
+                if(windowSeconds==1){
+                    row.createCell(15).setCellValue(windowCountAvg/ results.size());
+                }else{
+                    row.createCell(15).setCellValue(-1);
+                }
                 for (int i = 0; i < 4; i++) {
                     windowSheet.autoSizeColumn(i);
                 }

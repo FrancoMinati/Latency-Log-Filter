@@ -60,7 +60,7 @@ public class LatencyWindowAverager {
     }
     public Stats getStats() {
         List<Integer> values = getAllLatencies();
-        if (values.isEmpty()) return new Stats(0, 0,0, 0, 0,0, 0, 0, 0, 0,0);
+        if (values.isEmpty()) return new Stats(0, 0,0,0, 0, 0,0, 0, 0, 0, 0,0);
 
         Collections.sort(values);
         int n = values.size();
@@ -75,15 +75,30 @@ public class LatencyWindowAverager {
         int p99 = values.get(Math.min((int) Math.ceil(0.99 * n) - 1, n - 1));
         int p999 = values.get(Math.min((int) Math.ceil(0.999 * n) - 1, n - 1));
         int aboveP95 = (int) values.stream().filter(i -> i > p95).count();
+        double averageUpperP95= getAverageBelowP95(values,p95);
+        double averageBelowP95= getAverageBelowP95(values,p95);
+        return new Stats(avg, averageBelowP95,averageUpperP95,std, max, min, p50, p95, p99, p999, aboveP95,n);
+    }
+
+    private static double getAverageBelowP95(List<Integer> values,int p95) {
         List<Integer> filtered = values.stream()
                 .filter(v -> v <= p95)
                 .toList();
-        double averageBelowP95= filtered.stream()
+        return filtered.stream()
                 .mapToInt(i -> i)
                 .average()
                 .orElse(0.0);
-        return new Stats(avg, averageBelowP95,std, max, min, p50, p95, p99, p999, aboveP95,n);
     }
+    private static double getAverageUpperP95(List<Integer> values,int p95) {
+        List<Integer> filtered = values.stream()
+                .filter(v -> v >= p95)
+                .toList();
+        return filtered.stream()
+                .mapToInt(i -> i)
+                .average()
+                .orElse(0.0);
+    }
+
     public static double getWindowWeightedAvg(List<WindowResult> results) {
         double weightedSum = results.stream()
                 .mapToDouble(r -> r.averageLatency * r.count * r.count)

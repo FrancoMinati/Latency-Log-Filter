@@ -3,6 +3,7 @@ package document_filter.domain;
 public class Stats {
     public final double average;
     public final double averageBelowP95;
+    public final double averageUpperP95;
     public final double stdDev;
     public final int maxLatency;
     public final int minLatency;
@@ -13,9 +14,10 @@ public class Stats {
     public final int aboveP95Count;
     public final int totalDataSize;
 
-    public Stats(double average, double averageBelowP95, double stdDev, int maxLatency, int minLatency, int p50, int p95, int p99, int p999, int aboveP95Count, int totalDataSize) {
+    public Stats(double average, double averageBelowP95, double averageUpperP95, double stdDev, int maxLatency, int minLatency, int p50, int p95, int p99, int p999, int aboveP95Count, int totalDataSize) {
         this.average = average;
         this.averageBelowP95 = averageBelowP95;
+        this.averageUpperP95 = averageUpperP95;
         this.stdDev = stdDev;
         this.maxLatency = maxLatency;
         this.minLatency = minLatency;
