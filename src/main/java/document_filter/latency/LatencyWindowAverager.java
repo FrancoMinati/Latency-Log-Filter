@@ -76,7 +76,7 @@ public class LatencyWindowAverager {
         int p999 = values.get(Math.min((int) Math.ceil(0.999 * n) - 1, n - 1));
         int aboveP95 = (int) values.stream().filter(i -> i > p95).count();
         double averageUpperP95= getAverageBelowP95(values,p95);
-        double averageBelowP95= getAverageBelowP95(values,p95);
+        double averageBelowP95= getAverageUpperP95(values,p95);
         return new Stats(avg, averageBelowP95,averageUpperP95,std, max, min, p50, p95, p99, p999, aboveP95,n);
     }
 
