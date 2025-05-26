@@ -4,6 +4,7 @@ package document_filter.latency;
 import document_filter.domain.Stats;
 import document_filter.domain.WindowResult;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
@@ -187,11 +188,19 @@ public class LatencyExcelExporter {
 
                     Cell targetCell = targetRow.createCell(j);
                     copyCellValue(sourceCell, targetCell);
+
                 }
             }
 
             // Guardar cambios en el archivo destino
             try (FileOutputStream fos = new FileOutputStream(targetExcelFile)) {
+                for (int i = 0; i < targetWorkbook.getNumberOfSheets(); i++) {
+                    Sheet sheet = targetWorkbook.getSheetAt(i);
+                    if (sheet != null) {
+                        sheet.setForceFormulaRecalculation(true);
+                    }
+                }
+                targetWorkbook.setForceFormulaRecalculation(true);
                 targetWorkbook.write(fos);
                 System.out.println("✅ Copiado 'Latency Summary' a 'report data' en: " + targetExcelFile);
             }
