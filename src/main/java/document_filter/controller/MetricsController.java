@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/metrics")
 public class MetricsController {
@@ -32,11 +34,15 @@ public class MetricsController {
         if (resource == null) {
             return ResponseEntity.notFound().build();
         }
+        try{
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + resource.getFile().getName())
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(resource); // <-- sin el cast
+        }catch (IOException e){
+            return ResponseEntity.notFound().build();
+        }
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "daily_metrics.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(resource); // <-- sin el cast
     }
 
 

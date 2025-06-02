@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Component
 public class Metrics {
@@ -39,9 +41,9 @@ public class Metrics {
         LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
         try {
-
+            String date= LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             // Leer el archivo generado como recurso
-            File file = new File(reportFilePath);
+            File file = new File(outputDirectory+"report-"+date);
             return new InputStreamResource(new FileInputStream(file));
         } catch (FileNotFoundException eX) {
             System.out.println(eX.getCause());
