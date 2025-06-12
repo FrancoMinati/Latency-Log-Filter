@@ -28,27 +28,29 @@ public class Metrics {
     @Value("${output.directory}")
     private String outputDirectory;
 
-    //@PostConstruct
-    public void exportMetrics() {
-        System.out.println("Procesando archivos de latencia...");
-
-//        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
-//        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath);
-    }
-
     public InputStreamResource getDailyMetrics() {
-
         LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
+
         try {
-            String date= LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            // Leer el archivo generado como recurso
-            File file = new File(outputDirectory+"report-"+date);
+            String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String fileName = "report-" + date + ".xlsx"; // <-- asegurate que el archivo tenga extensión
+            File file = new File(outputDirectory + fileName);
+
+            System.out.println("Buscando archivo: " + file.getAbsolutePath());
+
+            if (!file.exists()) {
+                System.err.println("Archivo no encontrado!");
+                return null;
+            }
+
             return new InputStreamResource(new FileInputStream(file));
-        } catch (FileNotFoundException eX) {
-            System.out.println(eX.getCause());
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
         }
 
         return null;
     }
+
+
 }

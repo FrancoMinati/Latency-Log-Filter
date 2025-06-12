@@ -10,14 +10,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping("/api/metrics")
 public class MetricsController {
 
@@ -30,20 +30,20 @@ public class MetricsController {
     @ApiResponse(responseCode = "200", description = "Excel generado correctamente")
     @PostMapping("/daily-metrics")
     public ResponseEntity<Resource> getDailyMetrics() {
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String fileName = "report-" + date + ".xlsx";
+
         InputStreamResource resource = metrics.getDailyMetrics();
         if (resource == null) {
             return ResponseEntity.notFound().build();
         }
-        try{
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + resource.getFile().getName())
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .body(resource); // <-- sin el cast
-        }catch (IOException e){
-            return ResponseEntity.notFound().build();
-        }
 
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(resource);
     }
+
 
 
 }
