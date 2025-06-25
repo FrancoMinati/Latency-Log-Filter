@@ -1,21 +1,19 @@
 package document_filter.files;
 
 import document_filter.latency.LatencyExcelExporter;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class Metrics {
+public class MetricsService {
 
     @Value("${metrics.latency.windowSizeSeconds:1}")
     private int windowSizeSeconds;
@@ -28,6 +26,11 @@ public class Metrics {
     @Value("${output.directory}")
     private String outputDirectory;
 
+    @Scheduled(cron = "0 0 18 * * *", zone = "America/Argentina/Buenos_Aires")
+    public void generateDailyMetrics() {
+        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
+        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
+    }
     public InputStreamResource getDailyMetrics() {
         LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
