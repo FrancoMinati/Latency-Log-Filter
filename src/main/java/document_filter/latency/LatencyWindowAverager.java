@@ -1,5 +1,7 @@
 package document_filter.latency;
 
+import java.util.stream.Collectors;
+
 import document_filter.domain.Stats;
 import document_filter.domain.Window;
 import document_filter.domain.WindowResult;
@@ -19,7 +21,6 @@ public class LatencyWindowAverager {
         this.windowSizeSeconds = windowSizeSeconds;
         this.zoneId = ZoneId.of("America/Argentina/Buenos_Aires"); // o configurable
     }
-
 
 
     public void addLine(String line) {
@@ -58,9 +59,10 @@ public class LatencyWindowAverager {
         }
         return all;
     }
+
     public Stats getStats() {
         List<Integer> values = getAllLatencies();
-        if (values.isEmpty()) return new Stats(0, 0,0,0, 0, 0,0, 0, 0, 0, 0,0);
+        if (values.isEmpty()) return new Stats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         Collections.sort(values);
         int n = values.size();
@@ -68,31 +70,32 @@ public class LatencyWindowAverager {
         double avg = values.stream().mapToInt(i -> i).average().orElse(0);
         double std = Math.sqrt(values.stream().mapToDouble(i -> Math.pow(i - avg, 2)).average().orElse(0));
         int max = values.get(n - 1);
-        int min = values.getFirst();
+        int min = values.get(0);
 
-        int p50= values.get(Math.min((int) Math.ceil(0.5 * n) - 1, n - 1));
+        int p50 = values.get(Math.min((int) Math.ceil(0.5 * n) - 1, n - 1));
         int p95 = values.get(Math.min((int) Math.ceil(0.95 * n) - 1, n - 1));
         int p99 = values.get(Math.min((int) Math.ceil(0.99 * n) - 1, n - 1));
         int p999 = values.get(Math.min((int) Math.ceil(0.999 * n) - 1, n - 1));
         int aboveP95 = (int) values.stream().filter(i -> i > p95).count();
-        double averageBelowP95= getAverageBelowP95(values,p95);
-        double averageUpperP95= getAverageUpperP95(values,p95);
-        return new Stats(avg, averageBelowP95,averageUpperP95,std, max, min, p50, p95, p99, p999, aboveP95,n);
+        double averageBelowP95 = getAverageBelowP95(values, p95);
+        double averageUpperP95 = getAverageUpperP95(values, p95);
+        return new Stats(avg, averageBelowP95, averageUpperP95, std, max, min, p50, p95, p99, p999, aboveP95, n);
     }
 
-    private static double getAverageBelowP95(List<Integer> values,int p95) {
+    private static double getAverageBelowP95(List<Integer> values, int p95) {
         List<Integer> filtered = values.stream()
                 .filter(v -> v <= p95)
-                .toList();
+                .collect(Collectors.toList());
         return filtered.stream()
                 .mapToInt(i -> i)
                 .average()
                 .orElse(0.0);
     }
-    private static double getAverageUpperP95(List<Integer> values,int p95) {
+
+    private static double getAverageUpperP95(List<Integer> values, int p95) {
         List<Integer> filtered = values.stream()
                 .filter(v -> v >= p95)
-                .toList();
+                .collect(Collectors.toList());
         return filtered.stream()
                 .mapToInt(i -> i)
                 .average()

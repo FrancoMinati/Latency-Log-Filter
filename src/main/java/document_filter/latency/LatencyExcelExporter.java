@@ -226,12 +226,24 @@ public class LatencyExcelExporter {
 
     private static void copyCellValue(Cell source, Cell target) {
         switch (source.getCellType()) {
-            case STRING -> target.setCellValue(source.getStringCellValue());
-            case NUMERIC -> target.setCellValue(source.getNumericCellValue());
-            case BOOLEAN -> target.setCellValue(source.getBooleanCellValue());
-            case FORMULA -> target.setCellFormula(source.getCellFormula());
-            case BLANK -> target.setBlank();
-            default -> target.setCellValue(source.toString());
+            case STRING:
+                target.setCellValue(source.getStringCellValue());
+                break;
+            case NUMERIC:
+                target.setCellValue(source.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                target.setCellValue(source.getBooleanCellValue());
+                break;
+            case FORMULA:
+                target.setCellFormula(source.getCellFormula());
+                break;
+            case BLANK:
+                target.setBlank();
+                break;
+            default:
+                target.setCellValue(source.toString());
+                break;
         }
     }
 
