@@ -2,9 +2,11 @@ package document_filter.files;
 
 import document_filter.latency.LatencyExcelExporter;
 import document_filter.util.FileUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +32,11 @@ public class MetricsService {
     @Value("${output.folder.path}")
     private String outputDirectory;
 
-    @Scheduled(cron = "0 0 18 * * *", zone = "America/Argentina/Buenos_Aires")
+//    @Scheduled(cron = "00 15 17 * * *", zone = "America/Argentina/Buenos_Aires")
+    public void cronedExecution() {
+            generateDailyMetrics();
+    }
+
     public void generateDailyMetrics() {
         LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
