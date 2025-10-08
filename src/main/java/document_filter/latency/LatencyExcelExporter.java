@@ -4,12 +4,11 @@ package document_filter.latency;
 import document_filter.domain.Stats;
 import document_filter.domain.WindowResult;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -169,8 +168,8 @@ public class LatencyExcelExporter {
             copySummaryData(summarySheet, reportDataSheet); // Copiar fila por fila
 
             // Guardar cambios en el archivo destino
-            String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            String outputFilePath = Paths.get(outputDirectory, "report-" + dateStr + ".xlsx").toString();
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String outputFilePath = Paths.get(outputDirectory, timestamp + "_delay_report.xlsx").toString();
             try (FileOutputStream fos = new FileOutputStream(outputFilePath)) {
                 for (int i = 0; i < targetWorkbook.getNumberOfSheets(); i++) {
                     Sheet sheet = targetWorkbook.getSheetAt(i);
@@ -181,6 +180,13 @@ public class LatencyExcelExporter {
                 targetWorkbook.setForceFormulaRecalculation(true);
                 targetWorkbook.write(fos);
                 System.out.println("✅ Archivo generado en: " + outputFilePath);
+
+                File sourceFile = new File(sourceExcelFile);
+                if (sourceFile.exists()) {
+                    if (sourceFile.delete()) {
+                        System.out.println("✅ Se elimino correctamente el archivo: " + sourceExcelFile);
+                    }
+                }
             }
 
         } catch (IOException e) {
