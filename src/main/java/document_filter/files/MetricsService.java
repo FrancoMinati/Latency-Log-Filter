@@ -1,9 +1,11 @@
 package document_filter.files;
 
 import document_filter.latency.LatencyExcelExporter;
+import document_filter.util.FileUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -20,20 +22,22 @@ public class MetricsService {
     @Value("${input.folder.path}")
     private String inputFolderPath;
     @Value("${report.file.path}")
-    private String reportFilePath;
+    private Resource reportFilePath;
+    @Value("${temp.folder.path}")
+    private String tempFolderPath;
     @Value("${summary.file.path}")
     private String summaryFilePath;
-    @Value("${output.directory}")
+    @Value("${output.folder.path}")
     private String outputDirectory;
 
     @Scheduled(cron = "0 0 18 * * *", zone = "America/Argentina/Buenos_Aires")
     public void generateDailyMetrics() {
-        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
-        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
+        LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
+        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
     }
+
     public InputStreamResource getDailyMetrics() {
-        LatencyExcelExporter.processDirectory(inputFolderPath, windowSizeSeconds, summaryFilePath);
-        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportFilePath, outputDirectory);
+        generateDailyMetrics();
 
         try {
             String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
