@@ -4,8 +4,6 @@ import document_filter.latency.LatencyExcelExporter;
 import document_filter.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -15,9 +13,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class MetricsService {
+
+    private static final Logger LOGGER = Logger.getLogger(MetricsService.class.getName());
 
     @Value("${metrics.latency.windowSizeSeconds:1}")
     private int windowSizeSeconds;
@@ -50,16 +52,16 @@ public class MetricsService {
             String fileName = "report-" + date + ".xlsx"; // <-- asegurate que el archivo tenga extensión
             File file = new File(outputDirectory + fileName);
 
-            System.out.println("Buscando archivo: " + file.getAbsolutePath());
+            LOGGER.info("Buscando archivo: " + file.getAbsolutePath());
 
             if (!file.exists()) {
-                System.err.println("Archivo no encontrado!");
+                LOGGER.log(Level.SEVERE, "Archivo no encontrado!");
                 return null;
             }
 
             return new InputStreamResource(new FileInputStream(file));
         } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.SEVERE, ex.toString());
         }
 
         return null;

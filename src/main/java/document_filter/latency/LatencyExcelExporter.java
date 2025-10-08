@@ -13,8 +13,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LatencyExcelExporter {
+
+    private static final Logger LOGGER = Logger.getLogger(LatencyExcelExporter.class.getName());
 
     public static void processDirectory(String folderPath, int windowSeconds, String outputExcelFile) {
         File folder = new File(folderPath);
@@ -34,7 +38,7 @@ public class LatencyExcelExporter {
         }
 
         if (nameToFile.isEmpty()) {
-            System.out.println("No se encontraron archivos delay.log en subdirectorios de la carpeta.");
+            LOGGER.info("No se encontraron archivos delay.log en subdirectorios de la carpeta.");
             return;
         }
 
@@ -67,7 +71,7 @@ public class LatencyExcelExporter {
                         averager.addLine(line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.SEVERE, e.toString());
                     continue;
                 }
 
@@ -127,7 +131,7 @@ public class LatencyExcelExporter {
                     windowSheet.autoSizeColumn(i);
                 }
 
-                System.out.println("✔ Procesado: " + name);
+                LOGGER.info("✔ Procesado: " + name);
             }
 
             for (int i = 0; i < headers.length; i++) {
@@ -147,7 +151,7 @@ public class LatencyExcelExporter {
 
             try (FileOutputStream fos = new FileOutputStream(outputExcelFile)) {
                 workbook.write(fos);
-                System.out.println("✅ Exportado a Excel: " + outputExcelFile);
+                LOGGER.info("✔ Exportado a Excel: " + outputExcelFile);
             }
         } catch (IOException e) {
             throw new RuntimeException("Error al generar el Excel", e);
@@ -179,12 +183,12 @@ public class LatencyExcelExporter {
                 }
                 targetWorkbook.setForceFormulaRecalculation(true);
                 targetWorkbook.write(fos);
-                System.out.println("✅ Archivo generado en: " + outputFilePath);
+                LOGGER.info("✔ Archivo generado en: " + outputFilePath);
 
                 File sourceFile = new File(sourceExcelFile);
                 if (sourceFile.exists()) {
                     if (sourceFile.delete()) {
-                        System.out.println("✅ Se elimino correctamente el archivo: " + sourceExcelFile);
+                        LOGGER.info("✔ Se elimino correctamente el archivo: " + sourceExcelFile);
                     }
                 }
             }
