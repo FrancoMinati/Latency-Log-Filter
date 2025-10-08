@@ -42,6 +42,7 @@ public class MetricsService {
     public void generateDailyMetrics() {
         LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
+        relacionBeMixService.processTodayFile();
     }
 
     public InputStreamResource getDailyMetrics() {
