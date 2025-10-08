@@ -49,10 +49,13 @@ public class MetricsService {
     }
 
     public void generateDailyMetrics() {
+        FileUtil.clearDirectory(tempFolderPath);
         copyInputsService.copyDelayLogs(inputFolderPath,FileUtil.pathHandle(tempFolderPath), FileUtil.pathHandle(outputDirectory));
         LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
         relacionBeMixService.processTodayFile();
+        FileUtil.clearDirectory(tempFolderPath);
+        FileUtil.clearOldZips(outputDirectory,7);
     }
 
     public InputStreamResource getDailyMetrics() {
