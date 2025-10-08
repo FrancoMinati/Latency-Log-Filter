@@ -34,12 +34,22 @@ public class MetricsService {
     @Value("${output.folder.path}")
     private String outputDirectory;
 
-//    @Scheduled(cron = "00 15 17 * * *", zone = "America/Argentina/Buenos_Aires")
+    private final RelacionBeMixService relacionBeMixService;
+    private final CopyInputsService copyInputsService;
+
+    @Autowired
+    public MetricsService(RelacionBeMixService relacionBeMixService, CopyInputsService copyInputsService) {
+        this.relacionBeMixService = relacionBeMixService;
+        this.copyInputsService = copyInputsService;
+    }
+
+    //    @Scheduled(cron = "00 15 17 * * *", zone = "America/Argentina/Buenos_Aires")
     public void cronedExecution() {
-            generateDailyMetrics();
+        generateDailyMetrics();
     }
 
     public void generateDailyMetrics() {
+        copyInputsService.copyDelayLogs(inputFolderPath,FileUtil.pathHandle(tempFolderPath), FileUtil.pathHandle(outputDirectory));
         LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
         LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
         relacionBeMixService.processTodayFile();
