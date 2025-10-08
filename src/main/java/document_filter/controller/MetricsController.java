@@ -23,9 +23,17 @@ public class MetricsController {
     public MetricsController(MetricsService metricsService) {
         this.metricsService = metricsService;
     }
+
+    @Operation(summary = "Exporta métricas diarias a Excel (GET alias)", description = "Permite generar métricas diarias con una solicitud GET en lugar de POST")
+    @ApiResponse(responseCode = "200", description = "Excel generado correctamente")
+    @GetMapping("/generate-and-download-daily-report")
+    public ResponseEntity<Resource> getDailyMetricsGet() {
+        return getDailyMetrics();
+    }
+
     @Operation(summary = "Exporta métricas diarias a Excel", description = "Genera y retorna un archivo .xlsx con resumen de latencias")
     @ApiResponse(responseCode = "200", description = "Excel generado correctamente")
-    @PostMapping("/daily-metrics")
+    @PostMapping("/generate-and-download-daily-report")
     public ResponseEntity<Resource> getDailyMetrics() {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String fileName = "report-" + date + ".xlsx";
@@ -40,7 +48,4 @@ public class MetricsController {
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(resource);
     }
-
-
-
 }
