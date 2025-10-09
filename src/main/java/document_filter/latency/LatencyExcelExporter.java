@@ -184,13 +184,6 @@ public class LatencyExcelExporter {
                 targetWorkbook.setForceFormulaRecalculation(true);
                 targetWorkbook.write(fos);
                 LOGGER.info("✔ Archivo generado en: " + outputFilePath);
-
-                File sourceFile = new File(sourceExcelFile);
-                if (sourceFile.exists()) {
-                    if (sourceFile.delete()) {
-                        LOGGER.info("✔ Se elimino correctamente el archivo: " + sourceExcelFile);
-                    }
-                }
             }
 
         } catch (IOException e) {
