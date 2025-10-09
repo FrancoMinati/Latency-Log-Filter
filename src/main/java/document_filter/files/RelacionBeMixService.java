@@ -23,7 +23,7 @@ import java.util.Optional;
 @Component
 public class RelacionBeMixService {
 
-    private static final Logger log = LoggerFactory.getLogger(RelacionBeMixService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelacionBeMixService.class);
 
     @Value("${relacion-be-mix.folder.path}")
     private String inputFolderPath;
@@ -37,7 +37,7 @@ public class RelacionBeMixService {
             Path outputDir = Paths.get(outputFolderPath);
 
             if (!Files.exists(inputDir)) {
-                log.error("Input directory not found: {}", inputFolderPath);
+                LOGGER.error("Input directory not found: {}", inputFolderPath);
                 return;
             }
 
@@ -46,16 +46,15 @@ public class RelacionBeMixService {
             Optional<File> todayFile = Arrays.stream(Optional.ofNullable(inputDir.toFile().listFiles()).orElse(new File[0]))
                     .filter(File::isFile)
                     .filter(f -> f.getName().contains(today))
-                    .sorted(Comparator.comparingLong(File::lastModified))
-                    .findFirst();
+                    .min(Comparator.comparingLong(File::lastModified));
 
             if (!todayFile.isPresent()) {
-                log.warn("No se encontró ningún archivo con fecha de hoy ({}) en {}", today, inputFolderPath);
+                LOGGER.warn("No se encontró ningún archivo con fecha de hoy ({}) en {}", today, inputFolderPath);
                 return;
             }
 
             File sourceFile = todayFile.get();
-            log.info("Archivo encontrado: {}", sourceFile.getName());
+            LOGGER.info("Archivo encontrado: {}", sourceFile.getName());
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String newFileName = timestamp + "_relaciones_be_mix.txt";
@@ -65,10 +64,10 @@ public class RelacionBeMixService {
             FileTime now = FileTime.from(Instant.now());
             Files.setAttribute(targetFile, "creationTime", now);
             Files.setAttribute(targetFile, "lastModifiedTime", now);
-            log.info("Archivo copiado exitosamente a {}", targetFile);
+            LOGGER.info("Archivo copiado exitosamente a {}", targetFile);
 
         } catch (IOException e) {
-            log.error("Error al procesar archivo diario", e);
+            LOGGER.error("Error al procesar archivo diario", e);
         }
     }
 }

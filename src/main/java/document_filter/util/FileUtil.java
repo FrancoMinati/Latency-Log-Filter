@@ -3,7 +3,6 @@ package document_filter.util;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
@@ -23,7 +22,7 @@ public class FileUtil {
 
     public static String pathHandle(String filePath) {
         File file = new File(filePath);
-        File parentDir = file.isDirectory()? file : file.getParentFile();
+        File parentDir = filePath.matches(".*\\.[a-zA-Z0-9]+$") ? file.getParentFile() : file ;
 
         if (parentDir != null && !parentDir.exists()) {
             boolean created = parentDir.mkdirs();

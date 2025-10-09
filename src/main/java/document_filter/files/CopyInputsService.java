@@ -1,15 +1,14 @@
 package document_filter.files;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -17,7 +16,7 @@ import java.util.zip.ZipOutputStream;
 @Component
 public class CopyInputsService {
 
-    private static final Logger LOGGER = Logger.getLogger(CopyInputsService.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(CopyInputsService.class);
     private static final String TARGET_FILENAME = "delay.log";
 
     /**
@@ -27,7 +26,6 @@ public class CopyInputsService {
      * @param rootDirPath ruta de la carpeta raíz (String)
      * @param tempPath ruta de la carpeta de procesamiento (String)
      * @param outputPath ruta de la carpeta destino (String)
-     * @throws IOException si ocurre un error de E/S mayor
      */
     public void copyDelayLogs(String rootDirPath, String tempPath, String outputPath) {
         if (rootDirPath == null || rootDirPath.trim().isEmpty()) {
@@ -45,7 +43,8 @@ public class CopyInputsService {
         Path outputDir = Paths.get(outputPath).toAbsolutePath().normalize();
 
         if (!Files.exists(rootDir) || !Files.isDirectory(rootDir)) {
-            throw new IllegalArgumentException("El directorio raíz no existe o no es válido: " + rootDir);
+            LOGGER.warn("Input directory not found: {}", rootDir);
+            return;
         }
 
         try (Stream<Path> stream = Files.list(rootDir)) {
@@ -61,9 +60,8 @@ public class CopyInputsService {
                         Files.copy(sourceDelay, targetFile,
                                 StandardCopyOption.REPLACE_EXISTING,
                                 StandardCopyOption.COPY_ATTRIBUTES);
-//                        LOGGER.info(String.format("Copiado: %s -> %s", sourceDelay, targetFile));
                     } catch (IOException e) {
-                        LOGGER.log(Level.SEVERE, "Error copiando " + sourceDelay + " a " + targetDir, e);
+                        LOGGER.error("Error copiando " + sourceDelay + " a " + targetDir, e);
                     }
                 } else {
                     LOGGER.info("No se encontró " + TARGET_FILENAME + " en " + firstLevelDir);
@@ -92,7 +90,7 @@ public class CopyInputsService {
             });
             LOGGER.info("Archivo ZIP creado: " + zipFile);
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Error creando ZIP en " + zipFile, e);
+            LOGGER.error("Error creando ZIP en " + zipFile, e);
         }
     }
 }
