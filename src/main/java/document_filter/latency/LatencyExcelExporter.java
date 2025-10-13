@@ -75,14 +75,14 @@ public class LatencyExcelExporter {
                     continue;
                 }
 
-                List<WindowResult> results = averager.getResults();
+//                List<WindowResult> results = averager.getResults();
                 Stats stats = averager.getStats();
-                double windowAvg = document_filter.latency.LatencyWindowAverager.getWindowWeightedAvg(results);
+//                double windowAvg = document_filter.latency.LatencyWindowAverager.getWindowWeightedAvg(results);
 
                 Row row = summarySheet.createRow(rowNum);
                 row.createCell(0).setCellValue(name);
                 row.createCell(1).setCellValue(stats.average);
-                row.createCell(2).setCellValue(windowAvg);
+                row.createCell(2).setCellValue(0);
                 row.createCell(3).setCellValue(stats.stdDev);
                 row.createCell(4).setCellValue(stats.maxLatency);
                 row.createCell(5).setCellValue(stats.minLatency);
@@ -95,6 +95,7 @@ public class LatencyExcelExporter {
                 row.createCell(12).setCellValue(stats.totalDataSize);
                 row.createCell(13).setCellValue(stats.averageBelowP95);
                 row.createCell(14).setCellValue(stats.averageUpperP95);
+                row.createCell(15).setCellValue(0);
 
 
                 if (stats.average < bestAvg) {
@@ -104,32 +105,32 @@ public class LatencyExcelExporter {
 
                 rowNum++;
 
-                Sheet windowSheet = workbook.createSheet(name.replace("/", "_") + "_ventanas");
-                Row header = windowSheet.createRow(0);
-                header.createCell(0).setCellValue("Window Start");
-                header.createCell(1).setCellValue("Promedio (ms)");
-                header.createCell(2).setCellValue("Cantidad");
-                header.createCell(3).setCellValue("Ponderado (ms)");
-
-                int r = 1;
-                double windowCountAvg=0;
-                for (WindowResult result : results) {
-                    Row rowW = windowSheet.createRow(r++);
-                    rowW.createCell(0).setCellValue(result.windowStart.toString());
-                    rowW.createCell(1).setCellValue(result.averageLatency);
-                    rowW.createCell(2).setCellValue(result.count);
-                    windowCountAvg+= result.count;
-                    rowW.createCell(3).setCellValue(result.averageLatency*result.count*result.count); // genera un ponderado donde cada mensaje pesa n, siendo n la cantidad de mensajes totales durante ese segundo
-                }
-
-                if(windowSeconds==1){
-                    row.createCell(15).setCellValue(windowCountAvg/ results.size());
-                }else{
-                    row.createCell(15).setCellValue(-1);
-                }
-                for (int i = 0; i < 4; i++) {
-                    windowSheet.autoSizeColumn(i);
-                }
+//                Sheet windowSheet = workbook.createSheet(name.replace("/", "_") + "_ventanas");
+//                Row header = windowSheet.createRow(0);
+//                header.createCell(0).setCellValue("Window Start");
+//                header.createCell(1).setCellValue("Promedio (ms)");
+//                header.createCell(2).setCellValue("Cantidad");
+//                header.createCell(3).setCellValue("Ponderado (ms)");
+//
+//                int r = 1;
+//                double windowCountAvg=0;
+//                for (WindowResult result : results) {
+//                    Row rowW = windowSheet.createRow(r++);
+//                    rowW.createCell(0).setCellValue(result.windowStart.toString());
+//                    rowW.createCell(1).setCellValue(result.averageLatency);
+//                    rowW.createCell(2).setCellValue(result.count);
+//                    windowCountAvg+= result.count;
+//                    rowW.createCell(3).setCellValue(result.averageLatency*result.count*result.count); // genera un ponderado donde cada mensaje pesa n, siendo n la cantidad de mensajes totales durante ese segundo
+//                }
+//
+//                if(windowSeconds==1){
+//                    row.createCell(15).setCellValue(windowCountAvg/ results.size());
+//                }else{
+//                    row.createCell(15).setCellValue(-1);
+//                }
+//                for (int i = 0; i < 4; i++) {
+//                    windowSheet.autoSizeColumn(i);
+//                }
 
                 LOGGER.info("✔ Procesado: " + name);
             }
