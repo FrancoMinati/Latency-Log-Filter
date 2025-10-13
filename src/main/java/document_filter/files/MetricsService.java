@@ -8,9 +8,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
@@ -25,8 +23,8 @@ public class MetricsService {
     private int windowSizeSeconds;
     @Value("${input.folder.path}")
     private String inputFolderPath;
-    @Value("${report.file.path}")
-    private Resource reportFilePath;
+    @Value("${report.file.resource}")
+    private Resource reportResource;
     @Value("${temp.folder.path}")
     private String tempFolderPath;
     @Value("${summary.file.path}")
@@ -52,7 +50,8 @@ public class MetricsService {
         FileUtil.clearDirectory(FileUtil.pathHandle(tempFolderPath));
         copyInputsService.copyDelayLogs(inputFolderPath,tempFolderPath, FileUtil.pathHandle(outputDirectory));
         LatencyExcelExporter.processDirectory(tempFolderPath, windowSizeSeconds, FileUtil.pathHandle(summaryFilePath));
-        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, FileUtil.getPath(reportFilePath), outputDirectory);
+        String reportPath = FileUtil.createPath(reportResource, "report-template", ".xlsx");
+        LatencyExcelExporter.copySummaryToExistingExcel(summaryFilePath, reportPath, outputDirectory);
         relacionBeMixService.processTodayFile();
         FileUtil.clearDirectory(tempFolderPath);
         FileUtil.clearOldZips(outputDirectory,7);

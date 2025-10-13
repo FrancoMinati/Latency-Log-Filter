@@ -4,12 +4,8 @@ import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.io.InputStream;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +27,16 @@ public class FileUtil {
             }
         }
         return filePath;
+    }
+
+    public static String createPath(Resource resource, String prefix, String suffix) {
+        try (InputStream in = resource.getInputStream()) {
+            Path tempFile = Files.createTempFile(prefix, suffix);
+            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            return tempFile.toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy resource to temp file", e);
+        }
     }
 
     public static String getPath(Resource resource) {
