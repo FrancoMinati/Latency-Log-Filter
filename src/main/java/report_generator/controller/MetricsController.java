@@ -1,6 +1,5 @@
 package report_generator.controller;
 
-import report_generator.files.MetricsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.core.io.InputStreamResource;
@@ -9,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import report_generator.files.MetricsService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

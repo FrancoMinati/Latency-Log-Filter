@@ -1,9 +1,9 @@
 package report_generator.latency;
 
 
-import report_generator.domain.Stats;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import report_generator.domain.Stats;
 
 import java.io.*;
 import java.nio.file.Paths;

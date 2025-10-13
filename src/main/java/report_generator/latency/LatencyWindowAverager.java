@@ -1,7 +1,5 @@
 package report_generator.latency;
 
-import java.util.stream.Collectors;
-
 import report_generator.domain.Stats;
 import report_generator.domain.Window;
 import report_generator.domain.WindowResult;
@@ -10,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LatencyWindowAverager {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss.SSS");
