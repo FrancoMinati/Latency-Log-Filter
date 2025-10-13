@@ -1,6 +1,6 @@
-package document_filter.controller;
+package report_generator.controller;
 
-import document_filter.files.MetricsService;
+import report_generator.files.MetricsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.core.io.InputStreamResource;

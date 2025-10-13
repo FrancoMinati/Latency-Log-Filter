@@ -1,4 +1,4 @@
-package document_filter.domain;
+package report_generator.domain;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,7 +1,7 @@
-package document_filter.files;
+package report_generator.files;
 
-import document_filter.latency.LatencyExcelExporter;
-import document_filter.util.FileUtil;
+import report_generator.latency.LatencyExcelExporter;
+import report_generator.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;

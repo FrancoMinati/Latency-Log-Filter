@@ -1,7 +1,7 @@
-package document_filter;
+package report_generator;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import document_filter.files.MetricsService;
+import report_generator.files.MetricsService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,14 +14,14 @@ import java.util.logging.Logger;
 
 @SpringBootApplication
 @EnableScheduling
-public class DocumentFilterApplication {
+public class ReportGeneratorApp {
 
-    private static final Logger LOGGER = Logger.getLogger(DocumentFilterApplication.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ReportGeneratorApp.class.getName());
 
     public static void main(String[] args) {
         // RUN for rest api execution
         // ConfigurableApplicationContext context = SpringApplication.run(DocumentFilterApplication.class, args);
-        ConfigurableApplicationContext context = new SpringApplicationBuilder(DocumentFilterApplication.class)
+        ConfigurableApplicationContext context = new SpringApplicationBuilder(ReportGeneratorApp.class)
                 .web(WebApplicationType.NONE)
                 .run(args);
 

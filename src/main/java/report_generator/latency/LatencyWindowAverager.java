@@ -1,10 +1,10 @@
-package document_filter.latency;
+package report_generator.latency;
 
 import java.util.stream.Collectors;
 
-import document_filter.domain.Stats;
-import document_filter.domain.Window;
-import document_filter.domain.WindowResult;
+import report_generator.domain.Stats;
+import report_generator.domain.Window;
+import report_generator.domain.WindowResult;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

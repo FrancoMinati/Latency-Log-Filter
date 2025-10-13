@@ -1,4 +1,4 @@
-package document_filter.util;
+package report_generator.util;
 
 import org.springframework.core.io.Resource;
 

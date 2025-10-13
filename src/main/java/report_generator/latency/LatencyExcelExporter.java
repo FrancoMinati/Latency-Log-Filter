@@ -1,8 +1,7 @@
-package document_filter.latency;
+package report_generator.latency;
 
 
-import document_filter.domain.Stats;
-import document_filter.domain.WindowResult;
+import report_generator.domain.Stats;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -11,7 +10,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,7 +61,7 @@ public class LatencyExcelExporter {
                 String name = entry.getKey();
                 File file = entry.getValue();
 
-                LatencyWindowAverager averager = new document_filter.latency.LatencyWindowAverager(windowSeconds);
+                LatencyWindowAverager averager = new report_generator.latency.LatencyWindowAverager(windowSeconds);
 
                 try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                     String line;

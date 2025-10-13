@@ -1,4 +1,4 @@
-package document_filter.domain;
+package report_generator.domain;
 
 public class Stats {
     public final double average;
